@@ -1,0 +1,54 @@
+using Microsoft.AspNet.Identity;
+using PrepSecurity.Models;
+
+using System.Linq;
+using System.Web;
+using System.Web.Mvc;
+using System.Web.Security;
+
+namespace PrepSecurity.Controllers
+{
+    public class HomeController : Controller
+    {
+        // GET: Home
+        [Authorize/*(Roles = "Admin")*/]
+        public ActionResult Index()
+        {
+            
+            ViewBag.name = User.Identity.Name;
+            return View();
+        }
+
+        public ActionResult Login()
+        {
+            return View();
+        }
+        [HttpPost]
+        public ActionResult Login(tbl_User User)
+        {
+            DBEntities db = new DBEntities();
+            if (!ModelState.IsValid)
+            {
+                return View(User);
+            }
+            var user = db.tbl_User.Where(x => x.UserName == User.UserName && x.Password == User.Password).FirstOrDefault();
+            if (user != null && user.Role == "Admin     ")
+            {
+
+                FormsAuthentication.SetAuthCookie(user.UserName, false);
+
+                return Redirect("Index");
+            }
+            else
+                ModelState.AddModelError("error", "Invalid Username or password");
+                return View(User);
+            
+        }
+
+        public ActionResult Logout()
+        {
+            FormsAuthentication.SignOut();
+            return Redirect("Index");
+        }
+    }
+}
